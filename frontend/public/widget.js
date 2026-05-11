@@ -1,4 +1,4 @@
-(function() {
+(function () {
   const WIDGET_API = window.RESOLVEAI_API || 'http://localhost:5000/api';
   const script = document.currentScript;
   const orgSlug = script?.getAttribute('data-org') || '';

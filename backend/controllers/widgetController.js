@@ -4,6 +4,8 @@ const Ticket = require('../models/Ticket');
 const Organization = require('../models/Organization');
 const aiService = require('../services/aiService');
 const ticketAssignment = require('../services/ticketAssignment');
+const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 exports.widgetStartConversation = async (req, res) => {
   try {
@@ -51,6 +53,14 @@ exports.widgetSendMessage = async (req, res) => {
       content
     });
     conversation.lastMessageAt = new Date();
+    
+    if (['resolved', 'closed'].includes(conversation.status)) {
+      conversation.status = 'active';
+      if (conversation.ticket) {
+        await Ticket.findByIdAndUpdate(conversation.ticket, { status: 'open' });
+      }
+    }
+
     await conversation.save();
     const io = req.app.get('io');
     if (io) {
@@ -84,6 +94,18 @@ exports.widgetSendMessage = async (req, res) => {
           io.to(`conversation:${conversationId}`).emit('newMessage', escMsg);
           io.to(`org:${conversation.organization}`).emit('escalation', { conversationId });
         }
+
+        // Send email to all active agents/admins
+        const activeUsers = await User.find({ organization: conversation.organization, isActive: true });
+        const chatLink = `${process.env.FRONTEND_URL}/dashboard/conversations/${conversationId}`;
+        const customerName = customer?.name || 'Visitor';
+        
+        activeUsers.forEach(user => {
+          if (user.email) {
+            emailService.sendEscalationNotice(user.email, org.name, customerName, chatLink).catch(console.error);
+          }
+        });
+
         return res.json({ customerMessage, aiMessage: escMsg, escalated: true });
       }
       const aiMessage = await Message.create({

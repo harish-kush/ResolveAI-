@@ -70,7 +70,7 @@ class EmailService {
     await this.send(email, `Ticket Update: ${ticketId}`, html);
   }
 
-  async sendInvitation(email, orgName, inviteLink) {
+  async sendInvitation(email, orgName, inviteLink, tempPassword) {
     const html = `
       <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 32px;">
         <div style="background: linear-gradient(135deg, #2563EB, #7C3AED); padding: 24px; border-radius: 16px 16px 0 0;">
@@ -79,6 +79,7 @@ class EmailService {
         <div style="background: white; padding: 32px; border-radius: 0 0 16px 16px;">
           <h2 style="color: #1e293b; margin-top: 0;">You're Invited!</h2>
           <p style="color: #64748b; line-height: 1.6;">You've been invited to join <strong>${orgName}</strong> on ResolveAI.</p>
+          ${tempPassword ? `<p style="color: #64748b; line-height: 1.6;">Your temporary password is: <strong style="color: #1e293b;">${tempPassword}</strong></p>` : ''}
           <a href="${inviteLink}" style="display: inline-block; background: #2563EB; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; margin: 16px 0;">Accept Invitation</a>
           <p style="color: #94a3b8; font-size: 14px;">— The ResolveAI Team</p>
         </div>
@@ -100,6 +101,22 @@ class EmailService {
         </div>
       </div>`;
     await this.send(email, 'Password Reset - ResolveAI', html);
+  }
+
+  async sendEscalationNotice(email, orgName, customerName, chatLink) {
+    const html = `
+      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 32px;">
+        <div style="background: linear-gradient(135deg, #EF4444, #F59E0B); padding: 24px; border-radius: 16px 16px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">Action Required</h1>
+        </div>
+        <div style="background: white; padding: 32px; border-radius: 0 0 16px 16px;">
+          <h2 style="color: #1e293b; margin-top: 0;">Human Agent Needed!</h2>
+          <p style="color: #64748b; line-height: 1.6;">The AI assistant for <strong>${orgName}</strong> has escalated a conversation with <strong>${customerName}</strong> and requires human intervention.</p>
+          <a href="${chatLink}" style="display: inline-block; background: #EF4444; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; margin: 16px 0;">Take Over Conversation</a>
+          <p style="color: #94a3b8; font-size: 14px;">— The ResolveAI Team</p>
+        </div>
+      </div>`;
+    await this.send(email, `[Action Required] AI Escalated Chat - ${customerName}`, html);
   }
 }
 

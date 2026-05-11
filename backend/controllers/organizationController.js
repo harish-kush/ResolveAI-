@@ -71,12 +71,11 @@ exports.removeMember = async (req, res) => {
       return res.status(400).json({ message: 'Cannot remove yourself' });
     }
 
-    member.isActive = false;
-    await member.save();
-
     await Organization.findByIdAndUpdate(req.user.organization, {
       $pull: { members: member._id }
     });
+
+    await User.findByIdAndDelete(member._id);
 
     res.json({ message: 'Member removed' });
   } catch (error) {

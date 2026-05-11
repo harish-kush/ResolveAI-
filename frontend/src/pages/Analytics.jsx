@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { analyticsAPI } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
@@ -6,7 +8,10 @@ export default function Analytics() {
   const [stats, setStats] = useState(null);
   const [detailed, setDetailed] = useState(null);
   const [period, setPeriod] = useState('30');
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+
+  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
 
   useEffect(() => { fetchAll(); }, [period]);
 

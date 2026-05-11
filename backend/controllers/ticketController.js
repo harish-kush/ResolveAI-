@@ -126,10 +126,18 @@ exports.updateTicket = async (req, res) => {
     if (tags) ticket.tags = tags;
     if (category) ticket.category = category;
 
-    if (status === 'resolved' && oldStatus !== 'resolved') {
+    if (['resolved', 'closed'].includes(status) && !['resolved', 'closed'].includes(oldStatus)) {
       ticket.resolvedAt = new Date();
       if (ticket.assignedTo) {
         await ticketAssignment.releaseAgent(ticket.assignedTo);
+      }
+
+      if (ticket.conversation) {
+        await Conversation.findByIdAndUpdate(ticket.conversation, {
+          isAIHandled: true,
+          status: 'resolved',
+          assignedAgent: null
+        });
       }
     }
 

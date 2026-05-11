@@ -3,6 +3,6 @@ const { getDashboardStats, getDetailedAnalytics } = require('../controllers/anal
 const { protect, authorize } = require('../middleware/auth');
 
 router.get('/dashboard', protect, getDashboardStats);
-router.get('/detailed', protect, authorize('admin', 'super_admin'), getDetailedAnalytics);
+router.get('/detailed', protect, authorize('admin'), getDetailedAnalytics);
 
 module.exports = router;

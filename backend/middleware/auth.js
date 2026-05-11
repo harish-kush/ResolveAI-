@@ -39,10 +39,7 @@ const orgAccess = async (req, res, next) => {
     if (!orgId) {
       return res.status(400).json({ message: 'Organization ID required' });
     }
-    if (req.user.role === 'super_admin') {
-      req.orgId = orgId;
-      return next();
-    }
+
     if (req.user.organization && req.user.organization.toString() === orgId.toString()) {
       req.orgId = orgId;
       return next();

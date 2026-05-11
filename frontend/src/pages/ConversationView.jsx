@@ -74,6 +74,14 @@ export default function ConversationView() {
     } catch { toast.error('Failed to take over'); }
   };
 
+  const handleResolve = async () => {
+    try {
+      await chatAPI.resolve(id);
+      toast.success('Conversation resolved and handed back to AI');
+      navigate('/dashboard/conversations');
+    } catch { toast.error('Failed to resolve conversation'); }
+  };
+
   const handleTyping = (value) => {
     setInput(value);
     if (socket) socket.emit('typing', { conversationId: id, isTyping: value.length > 0 });
@@ -94,9 +102,14 @@ export default function ConversationView() {
         <button onClick={() => navigate('/dashboard/conversations')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 14 }}>
           <ArrowLeft size={16} /> Back
         </button>
-        <button className="btn-primary" style={{ padding: '8px 16px', fontSize: 12 }} onClick={handleTakeOver}>
-          <UserCheck size={14} /> Take Over
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn-secondary" style={{ padding: '8px 16px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }} onClick={handleResolve}>
+            <span style={{ color: 'var(--success)' }}>✓</span> Resolve
+          </button>
+          <button className="btn-primary" style={{ padding: '8px 16px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }} onClick={handleTakeOver}>
+            <UserCheck size={14} /> Take Over
+          </button>
+        </div>
       </div>
 
       <div className="card" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

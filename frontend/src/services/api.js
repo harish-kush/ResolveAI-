@@ -65,7 +65,8 @@ export const chatAPI = {
   getConversations: (params) => api.get('/chat', { params }),
   getMessages: (id) => api.get(`/chat/${id}/messages`),
   sendMessage: (id, data) => api.post(`/chat/${id}/messages`, data),
-  takeOver: (id) => api.post(`/chat/${id}/takeover`)
+  takeOver: (id) => api.post(`/chat/${id}/takeover`),
+  resolve: (id) => api.post(`/chat/${id}/resolve`)
 };
 
 export const widgetAPI = {

@@ -24,7 +24,7 @@ export default function Team() {
     e.preventDefault();
     try {
       const { data } = await authAPI.invite(inviteForm);
-      toast.success(`Invited ${inviteForm.name}. Temporary password: ${data.tempPassword}`);
+      toast.success(data.message || `Invite sent to ${inviteForm.email}`);
       setShowInvite(false);
       setInviteForm({ name: '', email: '', role: 'agent' });
       fetchMembers();
@@ -48,7 +48,7 @@ export default function Team() {
     } catch (err) { toast.error(err.response?.data?.message || 'Failed to remove'); }
   };
 
-  const roleColors = { super_admin: 'badge-danger', admin: 'badge-primary', agent: 'badge-info', customer: 'badge-warning' };
+  const roleColors = { admin: 'badge-primary', agent: 'badge-info' };
 
   return (
     <div>
@@ -57,7 +57,7 @@ export default function Team() {
           <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Team</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{members.length} members</p>
         </div>
-        {(user?.role === 'admin' || user?.role === 'super_admin') && (
+        {user?.role === 'admin' && (
           <button className="btn-primary" onClick={() => setShowInvite(true)}><UserPlus size={14} /> Invite Member</button>
         )}
       </div>
@@ -90,8 +90,8 @@ export default function Team() {
                   <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Workload</div>
                 </div>
                 <div style={{ background: 'var(--bg-tertiary)', borderRadius: 8, padding: 10, textAlign: 'center' }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: member.isActive ? 'var(--success)' : 'var(--danger)' }}>
-                    {member.isActive ? 'Active' : 'Inactive'}
+                  <div style={{ fontSize: 16, fontWeight: 800, color: !member.isActive ? 'var(--danger)' : (!member.lastLogin ? 'var(--warning)' : 'var(--success)') }}>
+                    {!member.isActive ? 'Inactive' : (!member.lastLogin ? 'Pending' : 'Active')}
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Status</div>
                 </div>
@@ -109,7 +109,7 @@ export default function Team() {
                 </div>
               )}
 
-              {(user?.role === 'admin' || user?.role === 'super_admin') && member._id !== user._id && (
+              {user?.role === 'admin' && member._id !== user._id && (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button className="btn-secondary" style={{ flex: 1, justifyContent: 'center', padding: '8px', fontSize: 12 }} onClick={() => handleToggleActive(member._id, member.isActive)}>
                     <Shield size={12} /> {member.isActive ? 'Deactivate' : 'Activate'}

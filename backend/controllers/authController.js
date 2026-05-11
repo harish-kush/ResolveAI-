@@ -126,13 +126,28 @@ exports.inviteMember = async (req, res) => {
     const { email, name, role } = req.body;
     const orgId = req.user.organization;
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: 'User already exists' });
+    const org = await Organization.findById(orgId);
+    const orgName = org?.name || 'Your Organization';
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      user.organization = orgId;
+      if (role) user.role = role;
+      user.isActive = true;
+      await user.save();
+
+      await Organization.findByIdAndUpdate(orgId, { $addToSet: { members: user._id } });
+
+      const emailService = require('../services/emailService');
+      const inviteLink = `${process.env.FRONTEND_URL}/login`;
+      await emailService.sendInvitation(email, orgName, inviteLink);
+
+      return res.status(200).json({ message: 'Existing user added to team', user: user.toJSON() });
     }
 
     const tempPassword = Math.random().toString(36).slice(-10);
-    const user = await User.create({
+    user = await User.create({
       name,
       email,
       password: tempPassword,
@@ -140,13 +155,13 @@ exports.inviteMember = async (req, res) => {
       organization: orgId
     });
 
-    await Organization.findByIdAndUpdate(orgId, { $push: { members: user._id } });
+    await Organization.findByIdAndUpdate(orgId, { $addToSet: { members: user._id } });
 
     const emailService = require('../services/emailService');
     const inviteLink = `${process.env.FRONTEND_URL}/login`;
-    await emailService.sendInvitation(email, req.user.organization?.name || 'Your Organization', inviteLink);
+    await emailService.sendInvitation(email, orgName, inviteLink, tempPassword);
 
-    res.status(201).json({ user: user.toJSON(), tempPassword });
+    res.status(201).json({ message: 'Invite sent successfully', user: user.toJSON() });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

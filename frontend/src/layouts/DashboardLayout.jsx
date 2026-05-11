@@ -66,24 +66,27 @@ export default function DashboardLayout() {
         </div>
 
         <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {navItems.map(({ path, icon: Icon, label, end }) => (
-            <NavLink
-              key={path}
-              to={path}
-              end={end}
-              onClick={() => setSidebarOpen(false)}
-              style={({ isActive }) => ({
-                display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-                borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 500,
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                background: isActive ? 'var(--bg-tertiary)' : 'transparent',
-                transition: 'all 0.2s ease'
-              })}
-            >
-              <Icon size={18} />
-              {label}
-            </NavLink>
-          ))}
+          {navItems.map(({ path, icon: Icon, label, end }) => {
+            if (label === 'Analytics' && user?.role !== 'admin') return null;
+            return (
+              <NavLink
+                key={path}
+                to={path}
+                end={end}
+                onClick={() => setSidebarOpen(false)}
+                style={({ isActive }) => ({
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                  borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 500,
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  background: isActive ? 'var(--bg-tertiary)' : 'transparent',
+                  transition: 'all 0.2s ease'
+                })}
+              >
+                <Icon size={18} />
+                {label}
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div style={{ padding: '16px', borderTop: '1px solid var(--border)' }}>

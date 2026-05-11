@@ -11,7 +11,6 @@ exports.getConversations = async (req, res) => {
     const { status, page = 1, limit = 20 } = req.query;
     const filter = { organization: orgId };
     if (status) filter.status = status;
-    if (req.user.role === 'agent') filter.assignedAgent = req.user._id;
     const total = await Conversation.countDocuments(filter);
     const conversations = await Conversation.find(filter)
       .populate('assignedAgent', 'name email avatar')
@@ -77,6 +76,44 @@ exports.takeOver = async (req, res) => {
     });
     const io = req.app.get('io');
     if (io) io.to(`conversation:${conversation._id}`).emit('agentTakeover', { agent: req.user.name });
+    res.json({ conversation });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.resolveConversation = async (req, res) => {
+  try {
+    const conversation = await Conversation.findById(req.params.id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+    
+    conversation.isAIHandled = true;
+    conversation.status = 'resolved';
+    conversation.assignedAgent = null;
+    await conversation.save();
+
+    if (conversation.ticket) {
+      const ticket = await Ticket.findById(conversation.ticket);
+      if (ticket) {
+        ticket.status = 'resolved';
+        ticket.resolvedAt = new Date();
+        const ticketAssignment = require('../services/ticketAssignment');
+        if (ticket.assignedTo) {
+          await ticketAssignment.releaseAgent(ticket.assignedTo);
+        }
+        await ticket.save();
+      }
+    }
+
+    await Message.create({
+      conversation: conversation._id,
+      sender: { type: 'system', name: 'System' },
+      content: `${req.user.name} has resolved the conversation. The AI has taken over again.`
+    });
+
+    const io = req.app.get('io');
+    if (io) io.to(`conversation:${conversation._id}`).emit('agentTakeover', { agent: 'AI' });
+
     res.json({ conversation });
   } catch (error) {
     res.status(500).json({ message: error.message });
