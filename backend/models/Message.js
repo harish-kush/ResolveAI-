@@ -17,5 +17,7 @@ const messageSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 messageSchema.index({ conversation: 1, createdAt: 1 });
+// TTL index: MongoDB auto-deletes messages 2 hours after creation
+messageSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7200 });
 
 module.exports = mongoose.model('Message', messageSchema);

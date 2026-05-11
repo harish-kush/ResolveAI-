@@ -8,7 +8,9 @@ const setupSocket = (io) => {
     try {
       const token = socket.handshake.auth?.token;
       const sessionId = socket.handshake.auth?.sessionId;
+
       if (token) {
+        // Agent/admin dashboard connection
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
         if (user) {
@@ -16,25 +18,34 @@ const setupSocket = (io) => {
           socket.userType = 'agent';
         }
       } else if (sessionId) {
+        // Widget (customer) connection — identified by session
         socket.sessionId = sessionId;
         socket.userType = 'customer';
       }
       next();
     } catch (error) {
-      next();
+      next(); // allow unauthenticated for widget customers
     }
   });
 
   io.on('connection', (socket) => {
     console.log(`Socket connected: ${socket.id} (${socket.userType || 'unknown'})`);
 
+    // Agent joins their org room
     if (socket.user) {
       socket.join(`org:${socket.user.organization}`);
       socket.join(`user:${socket.user._id}`);
     }
 
-    socket.on('joinConversation', (conversationId) => {
+    // Both agents AND widget customers join conversation rooms
+    socket.on('joinConversation', async (conversationId) => {
       socket.join(`conversation:${conversationId}`);
+      console.log(`${socket.userType || 'unknown'} (${socket.id}) joined conversation:${conversationId}`);
+
+      // For customers: also persist session → conversation link
+      if (socket.userType === 'customer' && socket.sessionId) {
+        socket.activeConversationId = conversationId;
+      }
     });
 
     socket.on('leaveConversation', (conversationId) => {
