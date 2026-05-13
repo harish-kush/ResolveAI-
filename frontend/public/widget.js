@@ -1,6 +1,6 @@
 (function () {
-  const WIDGET_API = window.RESOLVEAI_API || 'http://localhost:5000/api';
-  const SOCKET_URL = window.RESOLVEAI_SOCKET || 'http://localhost:5000';
+  const WIDGET_API = window.RESOLVEAI_API || 'https://resolveai-q16f.onrender.com/api';
+  const SOCKET_URL = window.RESOLVEAI_SOCKET || 'https://resolveai-q16f.onrender.com';
   const script = document.currentScript;
   const orgSlug = script?.getAttribute('data-org') || '';
 
