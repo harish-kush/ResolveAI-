@@ -6,7 +6,6 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const connectDB = async () => {
   let uri = process.env.MONGODB_URI;
-
   const isPlaceholder = !uri || uri.includes('xxxxx') || uri.includes('YOUR_');
 
   if (isPlaceholder) {

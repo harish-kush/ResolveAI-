@@ -18,7 +18,7 @@ const conversationSchema = new mongoose.Schema({
 
 conversationSchema.index({ organization: 1, status: 1 });
 conversationSchema.index({ 'customer.sessionId': 1 });
-// TTL index: auto-delete widget conversations 2 hours after the last message
+
 conversationSchema.index(
   { lastMessageAt: 1 },
   { expireAfterSeconds: 7200, partialFilterExpression: { channel: 'widget' } }
