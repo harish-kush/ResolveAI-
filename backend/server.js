@@ -18,7 +18,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "https://yourfrontend.netlify.app"
+      "https://resolve-ai-theta.vercel.app"
     ],
     methods: ["GET", "POST"],
     credentials: true
