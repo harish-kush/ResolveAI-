@@ -7,6 +7,7 @@ const connectRedis = () => {
     const redisUrl = process.env.REDIS_URL;
     if (redisUrl && !redisUrl.includes('YOUR_')) {
       redis = new Redis(process.env.REDIS_URL, {
+        tls: {},
         maxRetriesPerRequest: 3,
         retryStrategy(times) {
           if (times > 3) return null;
@@ -52,12 +53,12 @@ const cacheSet = async (key, value, ttl = 300) => {
   if (!redis) return;
   try {
     await redis.set(key, JSON.stringify(value), 'EX', ttl);
-  } catch {}
+  } catch { }
 };
 
 const cacheDel = async (key) => {
   if (!redis) return;
-  try { await redis.del(key); } catch {}
+  try { await redis.del(key); } catch { }
 };
 
 module.exports = { connectRedis, getRedis, cacheGet, cacheSet, cacheDel };
