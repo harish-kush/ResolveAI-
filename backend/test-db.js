@@ -1,8 +1,7 @@
 const dns = require("dns");
 const mongoose = require("mongoose");
 
-const uri =
-  "mongodb+srv://hkush2005_db_user:bZTH6rU8JInaaTn4@cluster0.uevmno6.mongodb.net/?appName=Cluster0";
+const uri = process.env.MONGODB_URI
 
 console.log("Testing DNS resolution...");
 
