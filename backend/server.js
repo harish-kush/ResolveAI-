@@ -51,23 +51,29 @@ const checkOrigin = async (origin, callback) => {
 
     console.log("Incoming Origin:", cleanOrigin);
 
-    // allow static origins
+    // allow fixed frontend origins
     if (allowedOrigins.includes(cleanOrigin)) {
       console.log("Allowed from static origins");
       return callback(null, true);
     }
 
-    // allow client websites from DB
+    // flexible DB match
     const organization = await Organization.findOne({
-      website: cleanOrigin,
+      website: {
+        $regex: `^${cleanOrigin}/?$`,
+        $options: 'i'
+      },
       isActive: true
     });
 
-    console.log("Organization Found:", !!organization);
+    console.log("Organization:", organization);
 
     if (organization) {
+      console.log("Allowed from DB");
       return callback(null, true);
     }
+
+    console.log("Blocked by CORS");
 
     return callback(new Error("Not allowed by CORS"));
 
