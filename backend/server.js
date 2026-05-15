@@ -14,12 +14,47 @@ const app = express();
 const server = http.createServer(app);
 
 
+// const io = new Server(server, {
+//   cors: {
+//     origin: [
+//       "http://localhost:5173",
+//       "https://resolve-ai-theta.vercel.app"
+//     ],
+//     methods: ["GET", "POST"],
+//     credentials: true
+//   }
+// });
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "https://resolve-ai-theta.vercel.app"
-    ],
+    origin: async (origin, callback) => {
+      try {
+
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        const cleanOrigin = origin
+          .trim()
+          .replace(/\/$/, "")
+          .toLowerCase();
+
+        const organization = await Organization.findOne({
+          website: cleanOrigin,
+          isActive: true
+        });
+
+        if (organization) {
+          callback(null, true);
+        } else {
+          callback(new Error("CORS blocked"));
+        }
+
+      } catch (err) {
+        console.log(err);
+        callback(new Error("Server Error"));
+      }
+    },
+
     methods: ["GET", "POST"],
     credentials: true
   }

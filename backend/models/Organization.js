@@ -43,9 +43,18 @@ const organizationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 organizationSchema.pre('save', function(next) {
+
   if (!this.widgetConfig.companyName) {
     this.widgetConfig.companyName = this.name;
   }
+
+  if (this.website) {
+    this.website = this.website
+      .trim()
+      .replace(/\/$/, "") 
+      .toLowerCase();
+  }
+
   next();
 });
 
