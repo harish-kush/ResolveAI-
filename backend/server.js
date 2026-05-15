@@ -9,6 +9,7 @@ const { connectRedis } = require('./config/redis');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { sanitize } = require('./middleware/validate');
 const setupSocket = require('./sockets/socketHandler');
+const Organization = require("./models/Organization");
 
 const app = express();
 const server = http.createServer(app);
@@ -72,16 +73,50 @@ const allowedOrigins = [
 app.use('/api/widget', cors({ origin: true, credentials: true }));
 app.use('/api/organization/widget', cors({ origin: true, credentials: true }));
 
+// app.use(cors({
+//   origin: function(origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   credentials: true
+// }));
+
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+  origin: async (origin, callback) => {
+
+    try {
+
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const cleanOrigin = origin
+        .replace(/\/$/, "")
+        .toLowerCase();
+
+      const organization = await Organization.findOne({
+        website: cleanOrigin,
+        isActive: true
+      });
+
+      if (organization) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+
+    } catch (err) {
+      console.log(err);
+      callback(err);
     }
   },
+
   credentials: true
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitize);
