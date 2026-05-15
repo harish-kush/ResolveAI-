@@ -9,53 +9,17 @@ const { connectRedis } = require('./config/redis');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { sanitize } = require('./middleware/validate');
 const setupSocket = require('./sockets/socketHandler');
-const Organization = require("./models/Organization");
 
 const app = express();
 const server = http.createServer(app);
 
 
-// const io = new Server(server, {
-//   cors: {
-//     origin: [
-//       "http://localhost:5173",
-//       "https://resolve-ai-theta.vercel.app"
-//     ],
-//     methods: ["GET", "POST"],
-//     credentials: true
-//   }
-// });
 const io = new Server(server, {
   cors: {
-    origin: async (origin, callback) => {
-      try {
-
-        if (!origin) {
-          return callback(null, true);
-        }
-
-        const cleanOrigin = origin
-          .trim()
-          .replace(/\/$/, "")
-          .toLowerCase();
-
-        const organization = await Organization.findOne({
-          website: cleanOrigin,
-          isActive: true
-        });
-
-        if (organization) {
-          callback(null, true);
-        } else {
-          callback(new Error("CORS blocked"));
-        }
-
-      } catch (err) {
-        console.log(err);
-        callback(new Error("Server Error"));
-      }
-    },
-
+    origin: [
+      "http://localhost:5173",
+      "https://resolve-ai-theta.vercel.app"
+    ],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -73,50 +37,16 @@ const allowedOrigins = [
 app.use('/api/widget', cors({ origin: true, credentials: true }));
 app.use('/api/organization/widget', cors({ origin: true, credentials: true }));
 
-// app.use(cors({
-//   origin: function(origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-//   credentials: true
-// }));
-
 app.use(cors({
-  origin: async (origin, callback) => {
-
-    try {
-
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      const cleanOrigin = origin
-        .replace(/\/$/, "")
-        .toLowerCase();
-
-      const organization = await Organization.findOne({
-        website: cleanOrigin,
-        isActive: true
-      });
-
-      if (organization) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-
-    } catch (err) {
-      console.log(err);
-      callback(err);
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
     }
   },
-
   credentials: true
 }));
-
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitize);
