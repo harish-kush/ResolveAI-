@@ -56,7 +56,7 @@ Follow these steps to run ResolveAI locally on your machine.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/resolveai.git
+git clone https://github.com/harish-kush/resolveai.git
 cd resolveai
 ```
 
@@ -76,36 +76,7 @@ npm install
 
 ### 3. Environment Configuration
 
-Create a `.env` file in the `backend` directory and add the following keys:
-
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# Database & Cache
-MONGODB_URI=your_mongodb_connection_string
-REDIS_URL=your_redis_connection_string
-
-# Authentication
-JWT_SECRET=your_super_secret_jwt_key
-JWT_EXPIRE=30d
-
-# AI Integration
-GEMINI_API_KEY=your_google_gemini_api_key
-
-# Email/Nodemailer Setup (For agent notifications)
-SMTP_HOST=your_smtp_host
-SMTP_PORT=587
-SMTP_USER=your_email@example.com
-SMTP_PASS=your_email_password
-```
-
-Create a `.env` file in the `frontend` directory:
-```env
-VITE_API_URL=http://localhost:5000
-VITE_SOCKET_URL=http://localhost:5000
-```
+Set up your `.env` variables for both the `frontend` and `backend` directories based on your local or cloud setup requirements.
 
 ### 4. Run the Application
 
