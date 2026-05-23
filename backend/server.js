@@ -20,9 +20,6 @@ const app = express();
 const server = http.createServer(app);
 
 
-// ========================
-// ALLOWED STATIC ORIGINS
-// ========================
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -31,15 +28,10 @@ const allowedOrigins = [
 ];
 
 
-// ========================
-// COMMON ORIGIN CHECKER
-// ========================
-
 const checkOrigin = async (origin, callback) => {
 
   try {
 
-    // allow postman / mobile apps
     if (!origin) {
       return callback(null, true);
     }
@@ -51,13 +43,12 @@ const checkOrigin = async (origin, callback) => {
 
     console.log("Incoming Origin:", cleanOrigin);
 
-    // allow fixed frontend origins
     if (allowedOrigins.includes(cleanOrigin)) {
       console.log("Allowed from static origins");
       return callback(null, true);
     }
 
-    // flexible DB match
+  
     const organization = await Organization.findOne({
       website: {
         $regex: `^${cleanOrigin}/?$`,
@@ -86,9 +77,6 @@ const checkOrigin = async (origin, callback) => {
 };
 
 
-// ========================
-// SOCKET.IO
-// ========================
 
 const io = new Server(server, {
   cors: {
@@ -101,16 +89,14 @@ const io = new Server(server, {
 app.set('io', io);
 
 
-// ========================
-// MIDDLEWARES
-// ========================
+
 
 app.use(helmet({
   contentSecurityPolicy: false
 }));
 
 
-// EXPRESS CORS
+
 
 app.use(cors({
   origin: checkOrigin,
