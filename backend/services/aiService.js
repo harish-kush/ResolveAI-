@@ -3,7 +3,6 @@ const AITrainingData = require('../models/AITrainingData');
 
 class AIService {
   constructor() {
-    // Gemini config
     this.geminiApiKey = process.env.GEMINI_API_KEY;
     this.geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
