@@ -19,8 +19,6 @@ const Organization = require('./models/Organization');
 const app = express();
 const server = http.createServer(app);
 
-
-
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5500",
@@ -88,15 +86,9 @@ const io = new Server(server, {
 
 app.set('io', io);
 
-
-
-
 app.use(helmet({
   contentSecurityPolicy: false
 }));
-
-
-
 
 app.use(cors({
   origin: checkOrigin,
