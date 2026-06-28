@@ -69,7 +69,8 @@ exports.widgetSendMessage = async (req, res) => {
     }
     if (conversation.isAIHandled) {
       const org = await Organization.findById(conversation.organization);
-      const context = await aiService.getRelevantContext(conversation.organization, content);
+      const contextResult = await aiService.getRelevantContextWithScore(conversation.organization, content);
+      const context = contextResult.context;
 
       // Fetch conversation history for memory (last 20 messages, excluding the one just created)
       const previousMessages = await Message.find({
@@ -81,6 +82,11 @@ exports.widgetSendMessage = async (req, res) => {
       const aiResponse = await aiService.generateResponseWithMemory(
         content, context, org?.aiConfig?.systemPrompt, chatHistory
       );
+      if (contextResult.topScore < 0.25 && !aiService.isSafeSmallTalk(content)) {
+        aiResponse.confidence = 0;
+        aiResponse.text = 'I do not have enough verified information to answer that accurately.';
+      }
+
       if (aiResponse.confidence < (org?.aiConfig?.confidenceThreshold || 0.6)) {
         conversation.isAIHandled = false;
         conversation.status = 'waiting';
@@ -95,16 +101,18 @@ exports.widgetSendMessage = async (req, res) => {
           io.to(`org:${conversation.organization}`).emit('escalation', { conversationId });
         }
 
-        // Send email to all active agents/admins
-        const activeUsers = await User.find({ organization: conversation.organization, isActive: true });
-        const chatLink = `${process.env.FRONTEND_URL}/dashboard/conversations/${conversationId}`;
-        const customerName = customer?.name || 'Visitor';
-        
-        activeUsers.forEach(user => {
-          if (user.email) {
-            emailService.sendEscalationNotice(user.email, org.name, customerName, chatLink).catch(console.error);
-          }
-        });
+        if (org?.settings?.emailNotifications !== false) {
+          const activeUsers = await User.find({ organization: conversation.organization, isActive: true });
+          const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+          const chatLink = `${baseUrl}/dashboard/conversations/${conversationId}`;
+          const customerName = customer?.name || 'Visitor';
+
+          await Promise.allSettled(
+            activeUsers
+              .filter(user => user.email)
+              .map(user => emailService.sendEscalationNotice(user.email, org.name, customerName, chatLink))
+          );
+        }
 
         return res.json({ customerMessage, aiMessage: escMsg, escalated: true });
       }
@@ -140,7 +148,9 @@ exports.contactForm = async (req, res) => {
     await Message.create({ conversation: conversation._id, sender: { type: 'customer', name }, content: message });
     if (org.settings.autoAssign) await ticketAssignment.autoAssign(ticket);
     const emailService = require('../services/emailService');
-    if (email) await emailService.sendTicketCreated(email, ticket.ticketId, subject || 'Support Request');
+    if (email && org.settings.emailNotifications !== false) {
+      await emailService.sendTicketCreated(email, ticket.ticketId, subject || 'Support Request');
+    }
     res.status(201).json({ ticket, message: 'Your message has been received.' });
   } catch (error) {
     res.status(500).json({ message: error.message });

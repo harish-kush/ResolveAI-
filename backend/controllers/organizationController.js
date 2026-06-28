@@ -1,5 +1,6 @@
 const Organization = require('../models/Organization');
 const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 exports.getOrganization = async (req, res) => {
   try {
@@ -92,6 +93,37 @@ exports.getWidgetConfig = async (req, res) => {
       organizationId: org._id,
       name: org.name
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getEmailStatus = async (req, res) => {
+  try {
+    const verification = await emailService.verifyConnection();
+    res.json({
+      ...emailService.getStatus(),
+      verification
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.sendTestEmail = async (req, res) => {
+  try {
+    const to = req.body.email || req.user.email;
+    const result = await emailService.send(
+      to,
+      'ResolveAI email test',
+      '<p>This is a test email from ResolveAI production email configuration.</p>'
+    );
+
+    if (!result.sent) {
+      return res.status(502).json({ message: 'Email test failed', error: result.error });
+    }
+
+    res.json({ message: 'Test email sent', result });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

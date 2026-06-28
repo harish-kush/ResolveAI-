@@ -29,7 +29,6 @@ const allowedOrigins = [
 const checkOrigin = async (origin, callback) => {
 
   try {
-
     if (!origin) {
       return callback(null, true);
     }
@@ -73,8 +72,6 @@ const checkOrigin = async (origin, callback) => {
     return callback(err);
   }
 };
-
-
 
 const io = new Server(server, {
   cors: {

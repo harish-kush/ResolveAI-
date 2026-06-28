@@ -99,7 +99,7 @@ exports.createTicket = async (req, res) => {
       await ticketAssignment.autoAssign(ticket);
     }
 
-    if (customer?.email) {
+    if (customer?.email && org?.settings?.emailNotifications !== false) {
       await emailService.sendTicketCreated(customer.email, ticket.ticketId, subject);
     }
 
@@ -149,7 +149,10 @@ exports.updateTicket = async (req, res) => {
     await cacheDel(`tickets:${req.user.organization}:*`);
 
     if (ticket.customer.email && status && status !== oldStatus) {
-      await emailService.sendTicketUpdate(ticket.customer.email, ticket.ticketId, status);
+      const org = await require('../models/Organization').findById(req.user.organization);
+      if (org?.settings?.emailNotifications !== false) {
+        await emailService.sendTicketUpdate(ticket.customer.email, ticket.ticketId, status);
+      }
     }
 
     const populated = await Ticket.findById(ticket._id).populate('assignedTo', 'name email');

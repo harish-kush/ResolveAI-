@@ -53,9 +53,9 @@ class AIService {
    */
   async callGemini(prompt, systemPrompt = '', generationConfig = {}, chatHistory = []) {
     const config = {
-      temperature: generationConfig.temperature ?? 0.7,
+      temperature: generationConfig.temperature ?? 0.2,
       maxOutputTokens: generationConfig.maxOutputTokens ?? 1024,
-      topP: 0.95
+      topP: generationConfig.topP ?? 0.8
     };
 
     // Build multi-turn contents array for Gemini
@@ -135,9 +135,9 @@ class AIService {
           {
             model: this.mistralModel,
             messages,
-            temperature: generationConfig.temperature ?? 0.7,
+            temperature: generationConfig.temperature ?? 0.2,
             max_tokens: generationConfig.maxOutputTokens ?? 1024,
-            top_p: 0.95
+            top_p: generationConfig.topP ?? 0.8
           },
           {
             headers: {
@@ -188,15 +188,17 @@ class AIService {
    */
   async generateResponseWithMemory(prompt, context = '', systemPrompt = '', chatHistory = []) {
     try {
-      let userPrompt = '';
-      if (context) {
-        userPrompt += `Here is relevant knowledge base information:\n${context}\n\n`;
+      if (!this.hasUsableContext(context) && !this.isSafeSmallTalk(prompt)) {
+        return {
+          text: 'I do not have enough verified information to answer that accurately. Let me connect you with a human agent.',
+          confidence: 0
+        };
       }
-      userPrompt += prompt;
 
-      const system = systemPrompt || 'You are a helpful customer support assistant. Be concise, friendly, and professional. If you are unsure about an answer, say so clearly. Use the conversation history to understand context and references like pronouns (he, she, it, they, etc.).';
+      const userPrompt = this.buildGroundedUserPrompt(prompt, context);
+      const system = this.buildGroundedSystemPrompt(systemPrompt);
 
-      const text = await this.callAI(userPrompt, system, {}, chatHistory);
+      const text = await this.callAI(userPrompt, system, { temperature: 0.2, topP: 0.8 }, chatHistory);
       return { text, confidence: this.estimateConfidence(text) };
     } catch (error) {
       console.error('AI Error:', error.message);
@@ -206,9 +208,15 @@ class AIService {
 
   async generateResponse(prompt, context = '', systemPrompt = '') {
     try {
+      if (!this.hasUsableContext(context) && !this.isSafeSmallTalk(prompt)) {
+        return {
+          text: 'I do not have enough verified information to answer that accurately. Let me connect you with a human agent.',
+          confidence: 0
+        };
+      }
       const userPrompt = this.buildUserPrompt(prompt, context);
-      const system = systemPrompt || 'You are a helpful customer support assistant. Be concise, friendly, and professional. If you are unsure about an answer, say so clearly.';
-      const text = await this.callAI(userPrompt, system);
+      const system = this.buildGroundedSystemPrompt(systemPrompt);
+      const text = await this.callAI(userPrompt, system, { temperature: 0.2, topP: 0.8 });
       return { text, confidence: this.estimateConfidence(text) };
     } catch (error) {
       console.error('AI Error:', error.message);
@@ -222,19 +230,24 @@ class AIService {
    */
   async generateResponseWithAnalysis(query, context = '', systemPrompt = '', chatHistory = []) {
     try {
-      const system = systemPrompt || 'You are a helpful customer support assistant. Be concise, friendly, and professional.';
-      let userPrompt = '';
-      if (context) {
-        userPrompt += `Here is relevant knowledge base information:\n${context}\n\n`;
+      if (!this.hasUsableContext(context) && !this.isSafeSmallTalk(query)) {
+        return {
+          response: 'I do not have enough verified information to answer that accurately. Let me connect you with a human agent.',
+          confidence: 0,
+          sentiment: 'neutral',
+          intent: 'general'
+        };
       }
-      userPrompt += `Customer query: "${query}"\n\n`;
-      userPrompt += `Please respond in the following JSON format (no markdown, no code fences, just raw JSON):\n`;
+
+      const system = this.buildGroundedSystemPrompt(systemPrompt);
+      let userPrompt = this.buildGroundedUserPrompt(query, context);
+      userPrompt += `\n\nAlso analyze the customer message. Respond in this exact JSON format with no markdown and no code fences:\n`;
       userPrompt += `{\n  "response": "your helpful response to the customer",\n  "sentiment": "positive|neutral|negative",\n  "intent": "billing|technical|general|complaint|feature_request|account"\n}`;
 
-      const text = await this.callAI(userPrompt, system, { temperature: 0.5 }, chatHistory);
+      const text = await this.callAI(userPrompt, system, { temperature: 0.1, topP: 0.7 }, chatHistory);
 
       // Parse the JSON response
-      const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      const cleaned = this.extractJson(text);
       const parsed = JSON.parse(cleaned);
 
       return {
@@ -259,14 +272,65 @@ class AIService {
     if (context) {
       prompt += `Here is relevant knowledge base information:\n${context}\n\n`;
     }
-    prompt += `Customer query: ${query}\n\nProvide a helpful response:`;
+    prompt += `Customer query: ${query}\n\nProvide a helpful response using only the verified information above.`;
     return prompt;
+  }
+
+  buildGroundedSystemPrompt(customPrompt = '') {
+    const basePrompt = customPrompt || 'You are a helpful customer support assistant.';
+    return `${basePrompt}
+
+Grounding rules:
+- Use only the provided knowledge base context and the current conversation.
+- Do not invent prices, policies, features, timelines, guarantees, links, or technical details.
+- If the answer is not clearly supported by the knowledge base context, say you do not have enough verified information and ask to connect the customer with a human agent.
+- Do not use general internet knowledge as a substitute for missing company knowledge.
+- Keep answers concise, friendly, and professional.`;
+  }
+
+  buildGroundedUserPrompt(query, context) {
+    const verifiedContext = context || 'No verified knowledge base context was found.';
+    return `Verified knowledge base context:
+${verifiedContext}
+
+Customer query:
+${query}
+
+Answer the customer using only the verified context. If the context does not support the answer, do not guess.`;
+  }
+
+  hasUsableContext(context) {
+    return typeof context === 'string' && context.trim().length >= 40;
+  }
+
+  isSafeSmallTalk(text = '') {
+    const normalized = text.toLowerCase().trim().replace(/[!.?]+$/g, '');
+    return [
+      'hi',
+      'hello',
+      'hey',
+      'good morning',
+      'good afternoon',
+      'good evening',
+      'thanks',
+      'thank you'
+    ].includes(normalized);
+  }
+
+  extractJson(text = '') {
+    const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start === -1 || end === -1 || end <= start) return cleaned;
+    return cleaned.slice(start, end + 1);
   }
 
   estimateConfidence(response) {
     const lowConfidenceIndicators = [
       'i\'m not sure', 'i don\'t know', 'i cannot', 'i\'m unable',
-      'please contact', 'human agent', 'not certain', 'unclear'
+      'please contact', 'human agent', 'not certain', 'unclear',
+      'do not have enough verified information', 'not enough verified information',
+      'connect you with a human'
     ];
     const lower = response.toLowerCase();
     const hasLowConfidence = lowConfidenceIndicators.some(i => lower.includes(i));
@@ -277,25 +341,67 @@ class AIService {
 
   async getRelevantContext(organizationId, query) {
     try {
-      const trainingData = await AITrainingData.find({
-        organization: organizationId,
-        isActive: true
-      }).select('title content type').limit(20);
-      if (trainingData.length === 0) return '';
-      const queryLower = query.toLowerCase();
-      const scored = trainingData.map(doc => {
-        const words = queryLower.split(/\s+/);
-        const contentLower = (doc.title + ' ' + doc.content).toLowerCase();
-        const matchCount = words.filter(w => contentLower.includes(w)).length;
-        return { doc, score: matchCount / words.length };
-      }).sort((a, b) => b.score - a.score).slice(0, 5);
-      return scored
-        .filter(s => s.score > 0.1)
-        .map(s => `[${s.doc.type.toUpperCase()}] ${s.doc.title}\n${s.doc.content}`)
-        .join('\n\n---\n\n');
+      const { context } = await this.getRelevantContextWithScore(organizationId, query);
+      return context;
     } catch (error) {
       return '';
     }
+  }
+
+  async getRelevantContextWithScore(organizationId, query) {
+    try {
+      const trainingData = await AITrainingData.find({
+        organization: organizationId,
+        isActive: true
+      }).select('title content type').limit(50);
+
+      if (trainingData.length === 0) return { context: '', topScore: 0, matches: 0 };
+
+      const words = this.keywords(query);
+      if (words.length === 0) return { context: '', topScore: 0, matches: 0 };
+
+      const scored = trainingData
+        .map(doc => {
+          const title = doc.title || '';
+          const content = doc.content || '';
+          const searchable = `${title} ${content}`.toLowerCase();
+          const matchCount = words.filter(word => searchable.includes(word)).length;
+          const titleMatches = words.filter(word => title.toLowerCase().includes(word)).length;
+          const score = (matchCount + titleMatches) / words.length;
+          return { doc, score };
+        })
+        .filter(item => item.score >= 0.25)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      return {
+        context: scored
+          .map(({ doc }) => `[${doc.type.toUpperCase()}] ${doc.title}\n${doc.content}`)
+          .join('\n\n---\n\n'),
+        topScore: scored[0]?.score || 0,
+        matches: scored.length
+      };
+    } catch (error) {
+      console.error('Context retrieval error:', error.message);
+      return { context: '', topScore: 0, matches: 0 };
+    }
+  }
+
+  keywords(text = '') {
+    const stopWords = new Set([
+      'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'can', 'for', 'from',
+      'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'our', 'the',
+      'to', 'what', 'when', 'where', 'which', 'who', 'why', 'with', 'you', 'your'
+    ]);
+
+    return [...new Set(
+      text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .map(word => word.trim())
+        .filter(word => word.length > 2 && !stopWords.has(word))
+    )];
   }
 
   async summarizeConversation(messages) {
@@ -330,4 +436,3 @@ class AIService {
 }
 
 module.exports = new AIService();
-
