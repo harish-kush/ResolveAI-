@@ -51,9 +51,11 @@ class EmailService {
       console.log('Email service connected');
       return { ok: true, message: 'Email service connected' };
     } catch (error) {
-      this.lastError = error.message;
-      console.error('Email service verification failed:', error.message);
-      return { ok: false, message: error.message };
+      console.error(error);
+      console.error("Code:", error.code);
+      console.error("Command:", error.command);
+      console.error("Address:", error.address);
+      console.error("Port:", error.port);
     }
   }
 
