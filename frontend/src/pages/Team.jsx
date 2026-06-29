@@ -17,7 +17,9 @@ export default function Team() {
     try {
       const { data } = await orgAPI.getMembers();
       setMembers(data.members);
-    } catch {} finally { setLoading(false); }
+    } catch {
+      console.log('Failed to fetch members');
+    } finally { setLoading(false); }
   };
 
   const handleInvite = async (e) => {
