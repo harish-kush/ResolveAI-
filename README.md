@@ -1,153 +1,285 @@
-<div align="center">
-  <img src="https://img.icons8.com/color/96/000000/bot.png" alt="ResolveAI Logo" width="100"/>
-  <h1>🤖 ResolveAI</h1>
-  <p><strong>Next-Generation AI-Powered Customer Support SaaS</strong></p>
+# ResolveAI
 
-  [![React](https://img.shields.io/badge/React-19-blue.svg?style=for-the-badge&logo=react)](https://reactjs.org/)
-  [![Node.js](https://img.shields.io/badge/Node.js-Backend-green.svg?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
-  [![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248.svg?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
-  [![Redis](https://img.shields.io/badge/Redis-Cache-DC382D.svg?style=for-the-badge&logo=redis)](https://redis.io/)
-  [![Socket.io](https://img.shields.io/badge/Socket.io-Real--Time-black.svg?style=for-the-badge&logo=socketdotio)](https://socket.io/)
+<div align="center">
+  <img src="https://img.icons8.com/color/96/000000/bot.png" alt="ResolveAI Logo" width="100" />
+  <h1>🤖 ResolveAI</h1>
+  <p><strong>Enterprise-grade AI customer support platform for modern SaaS businesses</strong></p>
+
+  [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+  [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
+  [![Redis](https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis)](https://redis.io/)
+  [![Socket.io](https://img.shields.io/badge/Socket.io-Realtime-010101?style=for-the-badge&logo=socketdotio)](https://socket.io/)
 </div>
 
 ---
 
-## 🌟 Overview
+## Overview
 
-**ResolveAI** is a comprehensive, full-stack customer support platform that leverages the power of advanced AI (Google Gemini) to automate support tickets, handle user inquiries in real-time, and seamlessly escalate complex issues to human agents. Designed with a premium, dynamic UI and a highly scalable backend architecture.
+ResolveAI is a full-stack, AI-powered customer support platform designed to help organizations deliver instant, intelligent, and human-assisted support experiences across web and chat channels. It combines a real-time support dashboard, an embeddable widget, AI-driven ticket resolution, and analytics into a single cohesive SaaS workflow.
 
-## ✨ Key Features
-
-- 💬 **Real-time Communication:** Instant messaging powered by Socket.IO between users, AI agents, and human support staff.
-- 🧠 **AI-Driven Automation:** Smart ticketing and query resolution using the Gemini API. The AI retains conversational memory and resolves context (e.g., coreferences) efficiently.
-- ⚡ **Lightning Fast Caching:** Redis caching for fast response times and optimized database queries.
-- 📊 **Analytics Dashboard:** Real-time metrics, ticketing insights, and charts using Recharts.
-- 🔒 **Secure Auth & Data:** JWT-based authentication, bcrypt hashing, and helmet integration for robust API security.
-- 🔄 **Automated Escalations:** Smart handoffs from AI to human agents with automated email notifications to staff.
-- ⏳ **Session Management:** Intelligent 2-hour inactivity session expiry and auto-clearing history for privacy.
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Framework:** React 19 + Vite
-- **Styling:** Tailwind CSS
-- **Animations:** Framer Motion & GSAP
-- **Icons & Charts:** Lucide React, React Icons, Recharts
-- **Real-time:** Socket.IO Client
-
-### Backend
-- **Server:** Node.js, Express.js
-- **Database:** MongoDB (Mongoose)
-- **Caching:** Redis (ioredis)
-- **Real-time:** Socket.IO
-- **AI Integration:** Google Generative AI (Gemini)
-- **Utilities:** JWT, bcryptjs, Nodemailer, Multer
+The platform is built to support:
+- automated first-response support using AI
+- seamless escalation to human agents
+- ticket and conversation lifecycle management
+- analytics-driven operational visibility
+- multi-tenant SaaS onboarding and team collaboration
 
 ---
 
-## 🚀 Getting Started
+## Key Features
 
-Follow these steps to run ResolveAI locally on your machine.
+### Customer Experience
+- Real-time chat widget for websites and customer portals
+- AI-first response handling with grounded knowledge-base context
+- Automatic escalation to human agents when confidence is low
+- Conversation memory and contextual support
+- Support for contact-form intake and chat-based ticket creation
+
+### Operations & Team Management
+- Admin and agent dashboards for ticket resolution
+- Team member invitation and role-based access
+- Conversation ownership and takeover workflows
+- Internal notes and ticket-level collaboration
+- Email notifications for escalations and ticket updates
+
+### Intelligence & Analytics
+- AI-powered training content ingestion from URLs and manual content
+- Dashboard metrics such as tickets, resolution rates, response times, and status trends
+- Sentiment, category, and agent performance insights
+- Redis-backed caching for improved performance and lower latency
+
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+| --- | --- |
+| Frontend | React 19, Vite, React Router, Socket.IO Client, Framer Motion, GSAP, Recharts |
+| Backend | Node.js, Express.js, Socket.IO, JWT, Helmet, CORS, Express Rate Limit |
+| Database | MongoDB with Mongoose |
+| Cache & Session Layer | Redis via ioredis |
+| AI Services | Google Gemini with Mistral fallback support |
+| Email & Notifications | Nodemailer |
+| Deployment | Vercel for frontend, Render/Railway/DigitalOcean for backend, MongoDB Atlas + Redis cloud |
+
+---
+
+## Project Structure
+
+```text
+resolve_ai/
+├── backend/
+│   ├── config/               # DB, Redis, and environment configuration
+│   ├── controllers/          # Auth, chat, widget, analytics, AI, ticket logic
+│   ├── middleware/           # Auth, validation, rate limiting
+│   ├── models/               # Mongoose schemas for users, tickets, conversations, messages
+│   ├── routes/               # REST API route definitions
+│   ├── services/             # AI, crawler, email, assignment services
+│   ├── sockets/              # Socket.IO event handling
+│   └── server.js             # Application entry point
+├── frontend/
+│   ├── public/               # Static assets and widget bundle
+│   ├── src/
+│   │   ├── context/          # Auth and Socket state providers
+│   │   ├── layouts/          # Layout containers and dashboard shell
+│   │   ├── pages/            # Landing, login, dashboard, tickets, analytics, settings
+│   │   ├── services/         # API integration layer
+│   │   └── App.jsx           # Route configuration
+│   └── package.json
+├── architecture.md           # System design and architecture notes
+├── Plan.md                   # Product implementation plan
+└── README.md                 # Project documentation
+```
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/en/) (v18 or higher)
-- [MongoDB](https://www.mongodb.com/) (Local or Atlas)
-- [Redis](https://redis.io/) (Local or Upstash)
+- Node.js 18+
+- MongoDB instance or MongoDB Atlas
+- Redis instance or managed Redis service
+- API credentials for Gemini or Mistral
 
-### 1. Clone the Repository
+### Installation
+
 ```bash
-git clone https://github.com/harish-kush/resolveai.git
-cd resolveai
-```
+git clone <repository-url>
+cd resolve_ai
 
-### 2. Install Dependencies
-
-**For Backend:**
-```bash
 cd backend
 npm install
-```
 
-**For Frontend:**
-```bash
 cd ../frontend
 npm install
 ```
 
-### 3. Environment Configuration
+### Environment Variables
 
-Set up your `.env` variables for both the `frontend` and `backend` directories based on your local or cloud setup requirements.
+Create environment files for both backend and frontend as needed.
 
-### 4. Run the Application
+Backend example:
 
-You'll need two terminal windows/tabs to run both ends concurrently.
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_uri
+REDIS_URL=your_redis_url
+JWT_SECRET=your_jwt_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+GEMINI_API_KEY=your_gemini_key
+MISTRAL_API_KEY=your_mistral_key
+FRONTEND_URL=http://localhost:5173
+```
 
-**Terminal 1 (Backend):**
+### Run Locally
+
+Terminal 1:
+
 ```bash
 cd backend
 npm run dev
 ```
 
-**Terminal 2 (Frontend):**
+Terminal 2:
+
 ```bash
 cd frontend
 npm run dev
 ```
 
-Your app should now be running! 
-- **Frontend:** `http://localhost:5173`
-- **Backend API:** `http://localhost:5000`
+Application URLs:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:5000
 
 ---
 
-## 📂 Project Structure
+## API Documentation
 
-```text
-resolve_ai/
-│
-├── backend/                  # Express/Node.js Server
-│   ├── controllers/          # Route controllers (auth, chat, tickets)
-│   ├── models/               # Mongoose schemas (User, Message, Ticket)
-│   ├── routes/               # Express API routes
-│   ├── services/             # Business logic (AI service, Email service)
-│   ├── socket/               # Socket.io event handlers
-│   └── server.js             # Entry point
-│
-└── frontend/                 # React/Vite Client
-    ├── src/
-    │   ├── components/       # Reusable UI components
-    │   ├── pages/            # Page layouts (Dashboard, Chat widget)
-    │   ├── hooks/            # Custom React hooks
-    │   ├── context/          # State management context
-    │   └── App.jsx           # Main React component
-    └── package.json
-```
+Base URL: http://localhost:5000/api
+
+### Authentication
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | /auth/register | Register a new organization owner |
+| POST | /auth/login | Authenticate user and return JWT |
+| GET | /auth/me | Fetch authenticated user profile |
+| POST | /auth/refresh | Refresh access token |
+| POST | /auth/invite | Invite team member to organization |
+
+### Organization
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | /organization | Fetch current organization details |
+| PUT | /organization | Update organization settings |
+| GET | /organization/members | List organization members |
+| PUT | /organization/members/:memberId | Update team member role |
+| DELETE | /organization/members/:memberId | Remove team member |
+| GET | /organization/widget/:slug | Fetch widget configuration |
+| GET | /organization/email/status | Check email configuration status |
+| POST | /organization/email/test | Send a test email |
+
+### Tickets & Conversations
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | /tickets | List tickets for the authenticated organization |
+| GET | /tickets/stats | Fetch ticket statistics |
+| GET | /tickets/:id | Get a single ticket |
+| POST | /tickets | Create a new ticket |
+| PUT | /tickets/:id | Update ticket status, priority, or owner |
+| POST | /tickets/:id/notes | Add an internal note |
+| GET | /tickets/:id/ai-summary | Generate an AI-powered summary |
+| GET | /chat | List conversations |
+| GET | /chat/:id/messages | Fetch conversation history |
+| POST | /chat/:id/messages | Send a new message |
+| POST | /chat/:id/takeover | Take over a conversation |
+| POST | /chat/:id/resolve | Resolve a conversation |
+
+### Analytics & AI Training
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | /analytics/dashboard | Fetch dashboard analytics |
+| GET | /analytics/detailed | Fetch detailed and segmented analytics |
+| GET | /training | List training data |
+| POST | /training | Add training content manually |
+| PUT | /training/:id | Update training entry |
+| DELETE | /training/:id | Delete training entry |
+| POST | /training/crawl | Crawl a website for knowledge-base ingestion |
+| POST | /training/test | Test AI responses using current context |
+
+### Widget Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | /widget/start | Start a widget-based conversation |
+| POST | /widget/message | Send a message through the widget |
+| POST | /widget/contact | Submit a contact form message |
+
+### Health
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | /health | Health check endpoint |
 
 ---
 
-## 🌍 Deployment
+## Deployment
 
-ResolveAI is configured for modern cloud deployment:
-- **Frontend:** Ready for [Vercel](https://vercel.com/)
-- **Backend:** Optimized for [Render](https://render.com/)
-- **Cache:** Configured for [Upstash (Redis)](https://upstash.com/)
+### Recommended Production Setup
+- Frontend: Deploy the React app on Vercel or Netlify
+- Backend: Deploy the Express service on Render, Railway, Fly.io, or AWS ECS
+- Database: Use MongoDB Atlas for managed NoSQL storage
+- Cache: Use Redis Cloud or Upstash for session and query caching
+- File and asset delivery: Use a CDN for static assets where needed
 
-Ensure that you add your `.env` variables to the respective hosting platforms before deploying.
+### Production Checklist
+- Configure environment variables securely
+- Enable HTTPS and domain-based CORS rules
+- Set up structured logging and alerts
+- Use rate limiting and API protection middleware
+- Configure backups, monitoring, and autoscaling policies
 
 ---
 
-## 🤝 Contributing
+## Scaling for Millions of Users
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+To support very large traffic volumes, the architecture should evolve from a single-service deployment to a horizontally scalable platform.
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Recommended Scale Strategy
+- Deploy the backend behind a load balancer with multiple stateless instances
+- Use Redis Cluster for distributed caching and session coordination
+- Move AI inference and long-running workflows to background workers or queues
+- Introduce message brokers such as RabbitMQ or Kafka for decoupling real-time events and AI tasks
+- Use MongoDB sharding and index optimization for large datasets and high write throughput
+- Separate read-heavy workloads using read replicas or aggregated analytics pipelines
+- Use WebSocket gateway clustering for real-time chat at scale
+- Add observability with OpenTelemetry, Prometheus, Grafana, and centralized logging
+
+### Architectural Improvements for Scale
+- Introduce an API gateway for authentication, routing, throttling, and request tracing
+- Adopt containerization with Docker and orchestration using Kubernetes or ECS
+- Add edge caching and CDN support for static frontend assets
+- Implement asynchronous AI processing for knowledge ingestion and summarization
+- Use database connection pooling and request batching for high concurrency
+- Introduce tenant-aware partitioning for multi-organization workloads
+
+---
+
+## Contributing
+
+Contributions are welcome. Please follow a clean, maintainable development workflow:
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes with clear messages
+4. Open a pull request with a detailed summary
 
 ---
 
 <div align="center">
-  <p>Built with ❤️ by Harish Kushwaha</p>
+  <p><strong>Built with precision, scalability, and AI-first product thinking.</strong></p>
 </div>
