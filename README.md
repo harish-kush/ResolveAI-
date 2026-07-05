@@ -115,23 +115,6 @@ cd ../frontend
 npm install
 ```
 
-### Environment Variables
-
-Create environment files for both backend and frontend as needed.
-
-Backend example:
-
-```env
-PORT=5000
-MONGODB_URI=your_mongodb_uri
-REDIS_URL=your_redis_url
-JWT_SECRET=your_jwt_secret
-JWT_REFRESH_SECRET=your_refresh_secret
-GEMINI_API_KEY=your_gemini_key
-MISTRAL_API_KEY=your_mistral_key
-FRONTEND_URL=http://localhost:5173
-```
-
 ### Run Locally
 
 Terminal 1:
